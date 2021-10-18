@@ -1,6 +1,6 @@
-# Homebridge Triones LED Light Fluter Plug in
+# Homebridge Triones LED Strip Homebridge Plugin
 
-This plug-in enables you to control your Happy Lightning LED light bulb.
+This plug-in enables you to control your Happy Lightning LED strip.
 
 ## New Version
 
@@ -8,11 +8,11 @@ Releases that start with version 1.x.x are based on the old code base. If you wa
 project feel free to install version 2.x.x by running this command:
 
 ```shell
-not sure ---- //*npm install -g homebridge-magic-blue-bulb@alpha
+npm install -g homebridge-triones-led-strip@latest
 ```
 
 This software is still in the alpha phase. Should you find any issues, please open up an
-[issue](https://github.com/lucavb/homebridge-magic-blue-bulb/issues/new) on
+[issue](https://github.com/uhteddy/homebridge-triones-led-strip/issues/new) on
 GitHub. Nevertheless, this new version should work as a drop-in replacement for the old version, so
 your configuration does not require an update.
 
@@ -43,7 +43,7 @@ by running the command shown below. The mac is "FB:00:E0:82:AA:1F" in this case.
 Run the following command
 
 ```shell
-npm install -g homebridge-magic-blue-bulb
+npm install -g homebridge-triones-led-strip@latest
 ```
 
 Chances are you are going to need sudo with that.

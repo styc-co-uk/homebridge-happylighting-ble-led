@@ -1,7 +1,7 @@
 {
-    "name": "homebridge-magic-blue-bulb",
+    "name": "homebridge-triones-led-strip",
     "version": "1.0.3",
-    "description": "Homebridge plugin for the MagicBlue LED Lightbulbs",
+    "description": "Homebridge plugin for the triones LED strip.",
     "main": "index.js",
     "files": [
         "index.js",
@@ -12,7 +12,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/lucavb/homebridge-magic-blue-bulb.git"
+        "url": "git+https://github.com/uhteddy/homebridge-triones-led-strip.git"
     },
     "keywords": [
         "homebridge-plugin"
@@ -20,9 +20,9 @@
     "author": "Luca Becker",
     "license": "GPL-3.0",
     "bugs": {
-        "url": "https://github.com/lucavb/homebridge-magic-blue-bulb/issues"
+        "url": "https://github.com/uhteddy/homebridge-triones-led-strip/issues"
     },
-    "homepage": "https://github.com/lucavb/homebridge-magic-blue-bulb#readme",
+    "homepage": "https://github.com/uhteddy/homebridge-triones-led-strip#readme",
     "engines": {
         "node": ">=0.12.0",
         "homebridge": ">=0.2.0"
