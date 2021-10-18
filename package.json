@@ -1,36 +1,36 @@
 {
-    "name": "homebridge-triones-led-strip",
-    "version": "1.0.3",
-    "description": "Homebridge plugin for the triones LED strip.",
-    "main": "index.js",
-    "files": [
-        "index.js",
-        "rgbConversion.js"
-    ],
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/uhteddy/homebridge-triones-led-strip.git"
-    },
-    "keywords": [
-        "homebridge-plugin"
-    ],
-    "author": "Luca Becker",
-    "license": "GPL-3.0",
-    "bugs": {
-        "url": "https://github.com/uhteddy/homebridge-triones-led-strip/issues"
-    },
-    "homepage": "https://github.com/uhteddy/homebridge-triones-led-strip#readme",
-    "engines": {
-        "node": ">=0.12.0",
-        "homebridge": ">=0.2.0"
-    },
-    "dependencies": {
-       "@abandonware/noble": "^1.9.2-5"
-    },
-    "devDependencies": {
-        "prettier": "2.2.1"
-    }
+  "name": "homebridge-triones-led-strip",
+  "version": "1.0.4",
+  "description": "Homebridge plugin for the triones LED strip.",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "rgbConversion.js"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uhteddy/homebridge-triones-led-strip.git"
+  },
+  "keywords": [
+    "homebridge-plugin"
+  ],
+  "author": "Luca Becker & Teddy H.",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/uhteddy/homebridge-triones-led-strip/issues"
+  },
+  "homepage": "https://github.com/uhteddy/homebridge-triones-led-strip#readme",
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  },
+  "dependencies": {
+    "@abandonware/noble": "^1.9.2-5"
+  },
+  "devDependencies": {
+    "prettier": "2.2.1"
+  }
 }

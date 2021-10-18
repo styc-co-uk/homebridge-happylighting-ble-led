@@ -9,7 +9,7 @@ module.exports = function (homebridge) {
     Characteristic = homebridge.hap.Characteristic;
     HomebridgeAPI = homebridge;
 
-    homebridge.registerAccessory('homebridge-magic-blue-bulb', 'magic-blue-bulb', MagicBlueBulb);
+    homebridge.registerAccessory('homebridge-triones-led-strip', 'triones-led-strio', MagicBlueBulb);
 };
 
 function MagicBlueBulb(log, config) {
