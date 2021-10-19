@@ -1,6 +1,6 @@
 {
   "name": "homebridge-triones-led-strip",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Homebridge plugin for the triones LED strip.",
   "main": "index.js",
   "files": [
