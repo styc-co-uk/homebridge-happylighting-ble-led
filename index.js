@@ -48,10 +48,10 @@ function MagicBlueBulb(log, config) {
 }
 
 MagicBlueBulb.prototype.findBulb = function (mac, callback) {
-    var that = this;
     noble.on('stateChange', function (state) {
         if (state === 'poweredOn') {
             noble.startScanning();
+            this.log.debug("Starting to look for Triones LED.")
         } else {
             noble.stopScanning();
         }
@@ -59,8 +59,8 @@ MagicBlueBulb.prototype.findBulb = function (mac, callback) {
 
     noble.on('discover', function (peripheral) {
         if (peripheral.id === mac || peripheral.address === mac) {
-            that.log('found my bulb');
-            that.peripheral = peripheral;
+            this.log.debug("Located Triones LED.")
+            this.peripheral = peripheral;
         }
     });
 };
@@ -123,6 +123,7 @@ MagicBlueBulb.prototype.setState = function (status, callback) {
             if (error) that.log('BLE: Write handle Error: ' + error);
             callback();
         });
+        this.log.debug("Set Triones light state.")
     };
     this.attemptConnect(temp);
     this.ledsStatus.on = status;
