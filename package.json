@@ -1,7 +1,9 @@
 {
+  "private": true,
   "name": "homebridge-triones-led-strip",
+  "displayName": "Happy Lighting Bluetooth LED (STYC fork)",
   "version": "1.0.7",
-  "description": "Homebridge plugin for the triones LED strip.",
+  "description": "Homebridge plug-in for Happy Lighting (triones) LED adaptor",
   "main": "index.js",
   "files": [
     "index.js",
@@ -12,25 +14,25 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/uhteddy/homebridge-triones-led-strip.git"
+    "url": "git+https://github.com/styc-co-uk/homebridge-triones-single-colour"
   },
   "keywords": [
     "homebridge-plugin"
   ],
-  "author": "Luca Becker & Teddy H.",
+  "author": "Luca Becker & Teddy H. & STY Cho",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/uhteddy/homebridge-triones-led-strip/issues"
+    "url": "https://github.com/styc-co-uk/homebridge-triones-single-colour/issues"
   },
-  "homepage": "https://github.com/uhteddy/homebridge-triones-led-strip#readme",
+  "homepage": "https://github.com/styc-co-uk/homebridge-triones-single-colour#readme",
   "engines": {
     "node": ">=0.12.0",
     "homebridge": ">=0.2.0"
   },
   "dependencies": {
-    "@abandonware/noble": "^1.9.2-5"
+    "@abandonware/noble": "^1.9.2-15"
   },
   "devDependencies": {
-    "prettier": "2.2.1"
+    "prettier": "2.7.1"
   }
 }
