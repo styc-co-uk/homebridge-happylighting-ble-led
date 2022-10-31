@@ -9,7 +9,7 @@ module.exports = function (homebridge) {
     Characteristic = homebridge.hap.Characteristic;
     HomebridgeAPI = homebridge;
 
-    homebridge.registerAccessory('homebridge-triones-led-strip', 'triones-led-strip', MagicBlueBulb);
+    homebridge.registerAccessory('homebridge-heppylighting-ble-led', 'heppylighting-ble-led', MagicBlueBulb);
 };
 
 function MagicBlueBulb(log, config) {
@@ -20,7 +20,11 @@ function MagicBlueBulb(log, config) {
         values: rgbConversion.rgbToHsl(255, 255, 255),
     };
     this.mac = config.mac.toLowerCase();
-    this.handle = config.handle || 0x0007; // v9 is 0x000b
+    this.connected = false;
+    this.handle = config.handle || 0x000c; // v9 is 0x000b
+    this.statusHandle = config.statusHandle || 0; // status feedback handle
+    this.monoPort = config.monoPort.toUpperCase() || 'color'; // monochrome port or <false> RGB
+    this.monoMode = config.monoPort != 'color';
 
     this.findBulb(this.mac);
 
@@ -37,14 +41,16 @@ function MagicBlueBulb(log, config) {
     this.service.getCharacteristic(Characteristic.On).on('get', this.getState.bind(this));
     this.service.getCharacteristic(Characteristic.On).on('set', this.setState.bind(this));
 
-    this.service.getCharacteristic(Characteristic.Hue).on('get', this.getHue.bind(this));
-    this.service.getCharacteristic(Characteristic.Hue).on('set', this.setHue.bind(this));
-
-    this.service.getCharacteristic(Characteristic.Saturation).on('get', this.getSat.bind(this));
-    this.service.getCharacteristic(Characteristic.Saturation).on('set', this.setSat.bind(this));
-
     this.service.getCharacteristic(Characteristic.Brightness).on('get', this.getBright.bind(this));
     this.service.getCharacteristic(Characteristic.Brightness).on('set', this.setBright.bind(this));
+
+    if (this.monoPort == 'color') {
+        this.service.getCharacteristic(Characteristic.Hue).on('get', this.getHue.bind(this));
+        this.service.getCharacteristic(Characteristic.Hue).on('set', this.setHue.bind(this));
+
+        this.service.getCharacteristic(Characteristic.Saturation).on('get', this.getSat.bind(this));
+        this.service.getCharacteristic(Characteristic.Saturation).on('set', this.setSat.bind(this));
+    };
 }
 
 MagicBlueBulb.prototype.findBulb = function (mac, callback) {
@@ -52,17 +58,18 @@ MagicBlueBulb.prototype.findBulb = function (mac, callback) {
     noble.on('stateChange', function (state) {
         if (state === 'poweredOn') {
             noble.startScanning();
-            that.log('Starting scan for devices.');
+            that.log('Scanning for LED.');
         } else {
             noble.stopScanning();
         }
     });
 
     noble.on('discover', function (peripheral) {
-        that.log(peripheral.address)
+        this.log(peripheral.address);
         if (peripheral.id === mac || peripheral.address === mac) {
-            that.log('found my bulb');
-            that.peripheral = peripheral;
+            that.log('Found my LED, mac: %s.', mac);
+            that.log('LED is at %s mode at port %s.', that.monoMode ? 'monochrome' : 'color', that.monoPort);
+            this.peripheral = peripheral;
         }
     });
 };
@@ -74,14 +81,30 @@ MagicBlueBulb.prototype.writeColor = function (callback) {
             //callback(new Error());
             return;
         }
+        if (that.monoPort == 'color') {
+            this.hue = that.ledsStatus.values[0];
+            this.saturation = that.ledsStatus.values[1];
+        } else if (that.monoPort == 'R') {
+            this.hue = 0;
+            this.saturation = 100;
+        } else if (that.monoPort == 'G') {
+            this.hue = 120;
+            this.saturation = 100;
+        } else if (that.monoPort == 'B') {
+            this.hue = 240;
+            this.saturation = 100;
+        };
         var rgb = rgbConversion.hslToRgb(
-            that.ledsStatus.values[0],
-            that.ledsStatus.values[1],
+            // that.ledsStatus.values[0],
+            // that.ledsStatus.values[1],
+            this.hue,
+            this.saturation,
             that.ledsStatus.values[2],
         );
+        console.log('rgb',rgb);
         that.peripheral.writeHandle(
             that.handle,
-            new Buffer([0x56, rgb.r, rgb.g, rgb.b, 0x00, 0xf0, 0xaa]),
+            new Buffer.from([0x56, rgb.r, rgb.g, rgb.b, 0x00, 0xf0, 0xaa]),
             true,
             function (error) {
                 if (error) console.log('BLE: Write handle Error: ' + error);
@@ -95,15 +118,16 @@ MagicBlueBulb.prototype.writeColor = function (callback) {
 MagicBlueBulb.prototype.attemptConnect = function (callback) {
     if (this.peripheral && this.peripheral.state == 'connected') {
         callback(true);
+        noble.stopScanning();
     } else if (this.peripheral && this.peripheral.state == 'disconnected') {
-        this.log('lost connection to bulb. attempting reconnect ...');
-        var that = this;
+        noble.startScanningAsync();;
+        this.log('Lost connection to LED. Attempting reconnect...');
         this.peripheral.connect(function (error) {
             if (!error) {
-                that.log('reconnect was successful');
+                this.log('Reconnection successful.');
                 callback(true);
             } else {
-                that.log('reconnect was unsuccessful');
+                this.log('Reconnection failed.');
                 callback(false);
             }
         });
@@ -111,6 +135,7 @@ MagicBlueBulb.prototype.attemptConnect = function (callback) {
 };
 
 MagicBlueBulb.prototype.setState = function (status, callback) {
+    this.log('Setting status to \'%s\'.', status ? 'ON' : 'OFF');
     var code = 0x24,
         that = this;
     if (status) {
@@ -121,7 +146,7 @@ MagicBlueBulb.prototype.setState = function (status, callback) {
             callback(new Error());
             return;
         }
-        that.peripheral.writeHandle(that.handle, new Buffer([0xcc, code, 0x33]), true, function (error) {
+        that.peripheral.writeHandle(that.handle, new Buffer.from([0xcc, code, 0x33]), true, function (error) {
             if (error) that.log('BLE: Write handle Error: ' + error);
             callback();
         });
@@ -131,7 +156,34 @@ MagicBlueBulb.prototype.setState = function (status, callback) {
 };
 
 MagicBlueBulb.prototype.getState = function (callback) {
-    callback(null, this.ledsStatus.on);
+    if (this.statusHandle != 0x0000) {
+        this.log ('Listening to status return as statusHandle is \'%s\'.', this.statusHandle);
+        // var that = this;
+        // var getter = new Buffer.from ([0xef, 0x01, 0x77]);
+        // that.log('Firing %s to handle %s', getter, that.statusHandle)
+        // that.peripheral.writeHandle(
+        //     that.statusHandle,
+        //     getter,
+        //     true,
+        //     function (error) {
+        //         if (error) console.log('BLE: Write handle Error: ' + error);
+        //         callback();
+        //     },
+        // ).then(() => {
+        //     that.log('Getting status from handle', that.handle)
+        //     that.peripheral.readHandle(
+        //         that.handle,
+        //         async (error,data) => {
+        //             if (error) console.log('BLE: Write handle Error: ' + error);
+        //             this.statusData = data;
+        //             that.log('Returned data from', that.handle, 'is', data);
+        //         }
+        //     )
+        // })
+    } else {
+        callback(null, this.ledsStatus.on);
+        this.log('Getting default status as \'ON\', as statusHandle is \'%s\'.', this.statusHandle);
+    }
 };
 
 MagicBlueBulb.prototype.getHue = function (callback) {
@@ -139,6 +191,7 @@ MagicBlueBulb.prototype.getHue = function (callback) {
 };
 
 MagicBlueBulb.prototype.setHue = function (level, callback) {
+    this.log('Setting hue to %s deg.', level);
     this.ledsStatus.values[0] = level;
     if (this.ledsStatus.on) {
         this.writeColor(function () {
@@ -154,6 +207,7 @@ MagicBlueBulb.prototype.getSat = function (callback) {
 };
 
 MagicBlueBulb.prototype.setSat = function (level, callback) {
+    this.log('Setting saturation to %s%.', level);
     this.ledsStatus.values[1] = level;
     if (this.ledsStatus.on) {
         this.writeColor(function () {
@@ -169,6 +223,7 @@ MagicBlueBulb.prototype.getBright = function (callback) {
 };
 
 MagicBlueBulb.prototype.setBright = function (level, callback) {
+    this.log('Setting brightness level to %s%.', level);
     this.ledsStatus.values[2] = level;
     if (this.ledsStatus.on) {
         this.writeColor(function () {
