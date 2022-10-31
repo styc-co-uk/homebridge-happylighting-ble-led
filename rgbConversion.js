@@ -21,7 +21,7 @@ module.exports.hslToRgb = function (h, s, v) {
 
     h /= 360;
     s /= 100;
-    v /= 100;
+    v = (10**(v/100)-1)/9; // denominator = /9
 
     i = Math.floor(h * 6);
     f = h * 6 - i;
@@ -60,7 +60,7 @@ module.exports.hslToRgb = function (h, s, v) {
             b = q;
             break;
     }
-    var rgb = { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+    var rgb = { r: Math.round(r * 254), g: Math.round(g * 254), b: Math.round(b * 254) };
     return rgb;
 };
 
@@ -76,9 +76,9 @@ module.exports.hslToRgb = function (h, s, v) {
  * @return  {Array}           The HSL representation
  */
 module.exports.rgbToHsl = function (r, g, b) {
-    r /= 255;
-    g /= 255;
-    b /= 255;
+    r /= 254;
+    g /= 254;
+    b /= 254;
     var max = Math.max(r, g, b),
         min = Math.min(r, g, b);
     var h,
@@ -106,6 +106,6 @@ module.exports.rgbToHsl = function (r, g, b) {
 
     h *= 360; // return degrees [0..360]
     s *= 100; // return percent [0..100]
-    l *= 100; // return percent [0..100]
+    l = Math.log10(9*l+1)*100; // return percent [0..100]
     return [parseInt(h), parseInt(s), parseInt(l)];
 };
