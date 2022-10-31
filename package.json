@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "homebridge-heppylighting-ble-led",
+  "name": "homebridge-happylighting-ble-led",
   "displayName": "Happy Lighting Bluetooth LED (STYC fork)",
   "version": "1.0.8",
   "description": "Homebridge plug-in for Happy Lighting (triones) LED adaptor",
