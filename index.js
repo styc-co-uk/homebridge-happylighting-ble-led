@@ -17,14 +17,13 @@ function MagicBlueBulb(log, config) {
     this.name = config.name;
     this.ledsStatus = {
         on: true,
-        values: rgbConversion.rgbToHsl(255, 255, 255),
+        values: rgbConversion.rgbToHsl(254, 254, 254),
     };
     this.mac = config.mac.toLowerCase();
-    this.connected = false;
     this.handle = config.handle || 0x000c; // v9 is 0x000b
     this.statusHandle = config.statusHandle || 0; // status feedback handle
-    this.monoPort = config.monoPort.toUpperCase() || 'color'; // monochrome port or <false> RGB
-    this.monoMode = config.monoPort != 'color';
+    this.monoPort = config.monoPort.toUpperCase() || 'COLOR'; // monochrome port or <false> RGB
+    this.monoMode = this.monoPort != 'COLOR';
 
     this.findBulb(this.mac);
 
@@ -44,7 +43,7 @@ function MagicBlueBulb(log, config) {
     this.service.getCharacteristic(Characteristic.Brightness).on('get', this.getBright.bind(this));
     this.service.getCharacteristic(Characteristic.Brightness).on('set', this.setBright.bind(this));
 
-    if (this.monoPort == 'color') {
+    if (!this.monoMode) {
         this.service.getCharacteristic(Characteristic.Hue).on('get', this.getHue.bind(this));
         this.service.getCharacteristic(Characteristic.Hue).on('set', this.setHue.bind(this));
 
@@ -58,18 +57,20 @@ MagicBlueBulb.prototype.findBulb = function (mac, callback) {
     noble.on('stateChange', function (state) {
         if (state === 'poweredOn') {
             noble.startScanning();
-            that.log('Scanning for LED.');
+            that.log('Starting scan for devices.');
         } else {
             noble.stopScanning();
         }
     });
 
     noble.on('discover', function (peripheral) {
-        this.log(peripheral.address);
+        that.log(peripheral.address);
         if (peripheral.id === mac || peripheral.address === mac) {
             that.log('Found my LED, mac: %s.', mac);
             that.log('LED is at %s mode at port %s.', that.monoMode ? 'monochrome' : 'color', that.monoPort);
-            this.peripheral = peripheral;
+            that.peripheral = peripheral;
+            that.writeColor();
+            noble.stopScanning();
         }
     });
 };
@@ -81,27 +82,25 @@ MagicBlueBulb.prototype.writeColor = function (callback) {
             //callback(new Error());
             return;
         }
-        if (that.monoPort == 'color') {
-            this.hue = that.ledsStatus.values[0];
-            this.saturation = that.ledsStatus.values[1];
+        if (that.monoPort == 'COLOR') {
+            that.hue = that.ledsStatus.values[0];
+            that.saturation = that.ledsStatus.values[1];
         } else if (that.monoPort == 'R') {
-            this.hue = 0;
-            this.saturation = 100;
+            that.hue = 0;
+            that.saturation = 100;
         } else if (that.monoPort == 'G') {
-            this.hue = 120;
-            this.saturation = 100;
+            that.hue = 120;
+            that.saturation = 100;
         } else if (that.monoPort == 'B') {
-            this.hue = 240;
-            this.saturation = 100;
+            that.hue = 240;
+            that.saturation = 100;
         };
         var rgb = rgbConversion.hslToRgb(
-            // that.ledsStatus.values[0],
-            // that.ledsStatus.values[1],
-            this.hue,
-            this.saturation,
+            that.hue,
+            that.saturation,
             that.ledsStatus.values[2],
         );
-        console.log('rgb',rgb);
+        that.log('Writing R%s G%s B%s, to LED',rgb.r,rgb.g,rgb.b);
         that.peripheral.writeHandle(
             that.handle,
             new Buffer.from([0x56, rgb.r, rgb.g, rgb.b, 0x00, 0xf0, 0xaa]),
@@ -116,18 +115,18 @@ MagicBlueBulb.prototype.writeColor = function (callback) {
 };
 
 MagicBlueBulb.prototype.attemptConnect = function (callback) {
+    var that = this;
     if (this.peripheral && this.peripheral.state == 'connected') {
         callback(true);
-        noble.stopScanning();
     } else if (this.peripheral && this.peripheral.state == 'disconnected') {
-        noble.startScanningAsync();;
-        this.log('Lost connection to LED. Attempting reconnect...');
+        that.log('Lost connection to LED. Attempting reconnect ...');
+        noble.startScanning();
         this.peripheral.connect(function (error) {
             if (!error) {
-                this.log('Reconnection successful.');
+                that.log('Reconnection successful.');
                 callback(true);
             } else {
-                this.log('Reconnection failed.');
+                that.log('Reconnection failed.');
                 callback(false);
             }
         });
